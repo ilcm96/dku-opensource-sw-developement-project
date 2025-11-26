@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: project
+  ai:
+    openai:
+      base-url: ${LLM_OPENAI_BASE_URL}
+      api-key: ${LLM_API_KEY}
+      chat:
+        completions-path: ${LLM_COMPLETION_PATH}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health'
+
+llm:
+  model: ${LLM_MODEL}
+
+discord:
+  token: ${DISCORD_TOKEN}
+
+server:
+  forward-headers-strategy: framework
+
+debug: ${DEBUG}
