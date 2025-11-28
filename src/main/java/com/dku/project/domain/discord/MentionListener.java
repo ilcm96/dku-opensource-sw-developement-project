@@ -1,5 +1,6 @@
 package com.dku.project.domain.discord;
 
+import com.dku.project.domain.chat.ConversationEntry;
 import com.dku.project.domain.chat.RulebookChatService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * 멘션 기반 회칙 Q&A 리스너.
@@ -59,29 +60,55 @@ public class MentionListener extends ListenerAdapter {
     private void handleThreadMention(MessageReceivedEvent event) {
         ThreadChannel thread = event.getChannel().asThreadChannel();
 
-        String context = buildThreadContext(thread);
-        String answer = rulebookChatService.answer(event.getMessage().getContentDisplay(), context);
+        List<ConversationEntry> history = buildThreadHistory(thread);
+        String answer = rulebookChatService.answer(event.getMessage().getContentDisplay(), history);
 
         thread.sendMessage(answer).queue();
     }
 
     private void handleChannelMention(MessageReceivedEvent event) {
         Message message = event.getMessage();
-        String baseQuestion = message.getContentDisplay();
+        String question = message.getContentDisplay();
         String threadName = "회칙-문의-" + DateTimeFormatter.ofPattern("HHmmss").format(message.getTimeCreated());
 
         message.createThreadChannel(threadName).queue(thread -> {
-            String answer = rulebookChatService.answer(baseQuestion, "");
+            String answer = rulebookChatService.answer(question, List.of());
             thread.sendMessage(answer).queue();
         });
     }
 
-    private String buildThreadContext(ThreadChannel thread) {
+    private List<ConversationEntry> buildThreadHistory(ThreadChannel thread) {
         List<Message> messages = thread.getHistory().retrievePast(THREAD_HISTORY_LIMIT).complete();
 
         return messages.stream()
                 .sorted(Comparator.comparing(Message::getTimeCreated))
-                .map(m -> "%s: %s".formatted(m.getAuthor().getName(), m.getContentDisplay()))
-                .collect(Collectors.joining("\n"));
+                .map(this::toConversationEntry)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private ConversationEntry toConversationEntry(Message message) {
+        // 텍스트 내용만 추출
+        String display = message.getContentDisplay().strip();
+
+        // 이미지, 첨부파일 등 텍스트가 없는 메시지는 무시
+        if (display.isEmpty()) {
+            return null;
+        }
+
+        // 작성자가 봇이면 ASSISTANT, 아니면 USER 역할로 변환
+        ConversationEntry.Role role = message.getAuthor().equals(jda.getSelfUser())
+                ? ConversationEntry.Role.ASSISTANT
+                : ConversationEntry.Role.USER;
+
+        // ROLE 정보와 메시지를 작성자 이름을 포함한 단일 행으로 변환하여 ConversationEntry 생성
+        return new ConversationEntry(
+                role,
+                "%s: %s".formatted(message.getAuthor().getName(), singleLine(display))
+        );
+    }
+
+    private String singleLine(String text) {
+        return text.replaceAll("\\s+", " ").strip();
     }
 }
