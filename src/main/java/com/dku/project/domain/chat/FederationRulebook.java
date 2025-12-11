@@ -17,7 +17,13 @@ public final class FederationRulebook {
     public static final String RULEBOOK = loadRulebook();
 
     private static String loadRulebook() {
-        ClassPathResource resource = new ClassPathResource("federation-rulebook-20250602.txt");
+        ClassLoader classLoader = FederationRulebook.class.getClassLoader();
+
+        ClassPathResource resource = new ClassPathResource(
+                "federation-rulebook-20250602.txt",
+                classLoader
+        );
+
         try (InputStream is = resource.getInputStream()) {
             return new String(is.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
