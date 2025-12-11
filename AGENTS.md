@@ -6,7 +6,7 @@
 # 프로젝트 개요
 
 - 단국대학교 총동아리연합회 회칙을 그대로 근거로 삼아 Discord 멘션으로 들어오는 질문에 대해 LLM이 답변하는 회칙봇 프로젝트입니다.
-- Java 21과 Spring Boot 3.5.7 기반이며, Spring AI의 OpenAI 채팅 클라이언트와 net.dv8tion.JDA 6.1.2를 결합해 Discord에서 멘션 리스너를 운영합니다.
+- Java 21과 Spring Boot 3.5.8 기반이며, Spring AI의 OpenAI 채팅 클라이언트와 net.dv8tion.JDA 6.1.3를 결합해 Discord에서 멘션 리스너를 운영합니다.
 - `src/main/resources/federation-rulebook-20250602.txt`에 저장된 회칙 전문과 RulebookPrompts의 시스템 메시지를 통해 회칙 범위와 보안 규칙을 강제하고, 스레드 히스토리를 모아 문맥을 구성합니다.
 - `application.yml`은 `LLM_OPENAI_BASE_URL`, `LLM_API_KEY`, `LLM_COMPLETION_PATH`, `LLM_MODEL`, `DISCORD_TOKEN`, `DEBUG` 와 같은 환경 변수를 참조하여 OpenAI 및 Discord 인증을 설정하고, Spring AI 채팅 옵션과 JDA 인스턴스를 빈으로 제공합니다.
 
