@@ -42,3 +42,6 @@ out/
 ### Environment Variables ###
 .env
 .env.local
+
+report/
+styles.css
